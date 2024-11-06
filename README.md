@@ -9,8 +9,9 @@
 # Run the script
 source ./venv/bin/activate
 python3 -m pip install -r requirements.txt
-python3 discovery.py
+sudo python3 discovery.py
 
+sudo is needed to get mac addresses when using nmap
 
 Originally based on 
 https://github.com/zalerapraxis/pihole-hostnames/blob/master/discovery.py
