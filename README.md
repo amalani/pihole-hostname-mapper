@@ -2,7 +2,10 @@
 
 
 
-# Rename sample_hosts.csv to hosts.csv
+# How to use
+- Rename sample_hosts.csv to hosts.csv
+
+
 
 
 Originally based on 
