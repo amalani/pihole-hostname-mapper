@@ -1,4 +1,5 @@
 hosts.csv
 secrets.py
 private_notes.txt
-hosts.tmp
+hosts.txt
+nmap_hosts.txt

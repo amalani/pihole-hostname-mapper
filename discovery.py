@@ -1,16 +1,17 @@
 import csv
 import filecmp
+import json
 import os
 import sys
-from shutil import copyfile
 import uuid
+from shutil import copyfile
 
 import nmap
 from python_hosts import Hosts, HostsEntry
 
-
 HOSTS_LIST = "hosts.csv"
-HOSTS_TMP = "hosts.tmp"
+HOSTS_TMP = "hosts.txt"
+NMAP_HOSTS = "nmap_hosts.txt"
 # Nmap7.8 runs into issues with /22 subnet 
 NMAP_TARGETS = [
     '192.168.0.0/24',
@@ -103,9 +104,9 @@ def update_hosts(hosts, mac_dict, scan_results):
             # if neither the hostname or ip address exist in hosts file
             if not hosts.exists(ip, etchostname):
                 print(f"Adding hostname: {etchostname} with {ip} to hosts file.")
-                hosts.remove_all_matching(name=etchostname)
+                # hosts.remove_all_matching(name=etchostname)
                 new_entry = HostsEntry(entry_type='ipv4', address=ip, names=[etchostname])
-                hosts.add([new_entry])
+                hosts.add([new_entry], force=True)
 
             # if the hostname exists but ip address in hosts file differs from nmap scan
             for entry in hosts.entries:
@@ -113,9 +114,10 @@ def update_hosts(hosts, mac_dict, scan_results):
                     if entry.names[0] == etchostname:
                         if entry.address != ip:
                             print(f"Updating hostname {etchostname} with {ip}.")
-                            hosts.remove_all_matching(name=etchostname)
+                            # hosts.remove_all_matching(name=etchostname)
+                            # hosts.remove
                             new_entry = HostsEntry(entry_type='ipv4', address=ip, names=[etchostname])
-                            hosts.add([new_entry])
+                            hosts.add([new_entry], force=True)
 
 
 def main():
@@ -128,11 +130,17 @@ def main():
     copyfile("/etc/hosts", HOSTS_TMP)  # TODO: move to temp
     hosts = Hosts(path=HOSTS_TMP)
 
+    scan_results = {}
     for target in NMAP_TARGETS:
-        scan_results = nmap_scan(target=target)
-        update_hosts(hosts, mac_dict, scan_results)
+        scan_result = nmap_scan(target=target)
+        scan_results.update(scan_result)
 
+    update_hosts(hosts, mac_dict, scan_results)
     hosts.write()
+
+    # Dump nmap data to disk
+    with open(NMAP_HOSTS, 'w') as output:
+        output.write(json.dumps(scan_results, indent= 4, sort_keys= True))
 
     # if the contents of our temp hosts file differs from the real hosts file
     # copy our temp file over to the real file
