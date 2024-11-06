@@ -1,5 +1,9 @@
 # sudo /etc/init.d/dnsmasq restart
 
-source venv/bin/activate
-sudo python3 discovery.py
+echo "Pulling down latest git repo changes"
+git pull
+
+source ./venv/bin/activate
+sudo python3 ./discovery.py
+truncate -s 100K ./cron_log.log
 sudo pihole restartdns

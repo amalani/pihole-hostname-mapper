@@ -90,12 +90,13 @@ def update_hosts(hosts, mac_dict, scan_results):
     for ip, details in scan_results.items():
         # print(f"{ip} : {details}")
         if details['mac_address_found'] is True:
+            print(f"Device {ip} ({mac_address}):")
             mac_address = details['mac_address']
             if mac_address in mac_dict.keys():
                 etchostname = mac_dict[mac_address]
-                print(f"Device at {ip} ({mac_address}) is in hardcoded list as {etchostname}")
+                print(f" Found match {etchostname}")
             else:
-                print(f"Device at {ip} ({mac_address}) is not in list")
+                print(f" Match not found")
                 # Generate one if possible or lookup
                 ip_hostname = ip.replace(".", "_")
                 vendor = "_" + next(iter(details['vendor'].values())) if details['vendor'] else ""
@@ -104,7 +105,7 @@ def update_hosts(hosts, mac_dict, scan_results):
 
             # if neither the hostname or ip address exist in hosts file
             if not hosts.exists(ip, etchostname):
-                print(f"Adding hostname: {etchostname} with {ip} to hosts file.")
+                print(f" Adding {ip} ({mac_address}) as :{etchostname} to hosts file")
                 # hosts.remove_all_matching(name=etchostname)
                 new_entry = HostsEntry(entry_type='ipv4', address=ip, names=[etchostname])
                 hosts.add([new_entry], force=True)
@@ -114,9 +115,8 @@ def update_hosts(hosts, mac_dict, scan_results):
                 if entry.entry_type in ['ipv4']: # , 'ipv6']:
                     if entry.names[0] == etchostname:
                         if entry.address != ip:
-                            print(f"Updating hostname {etchostname} with {ip}.")
+                            print(f" Updating hostname {etchostname} with new {ip}.")
                             # hosts.remove_all_matching(name=etchostname)
-                            # hosts.remove
                             new_entry = HostsEntry(entry_type='ipv4', address=ip, names=[etchostname])
                             hosts.add([new_entry], force=True)
 
