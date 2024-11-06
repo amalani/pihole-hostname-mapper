@@ -1,0 +1,3 @@
+python-hosts==1.0.7
+python3-nmap==1.9.1
+simplejson==3.19.3

@@ -3,9 +3,13 @@
 
 
 # How to use
-- Rename sample_hosts.csv to hosts.csv
+- Rename sample_hosts.csv to hosts.csv and add any known mac addresses: host name combos
 
 
+# Run the script
+source venv/bin/activate
+python3 -m pip install -r requirements.txt
+python3 discovery.py
 
 
 Originally based on 
