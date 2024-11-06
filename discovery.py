@@ -146,7 +146,7 @@ def main():
     # copy our temp file over to the real file
     if not filecmp.cmp(HOSTS_TMP, "/etc/hosts", shallow=False):
         print("Changes detected, writing new hosts file")
-        # copyfile(HOSTS_TMP, "/etc/hosts")
+        copyfile(HOSTS_TMP, "/etc/hosts")
 
 if __name__ == "__main__":
     main()
