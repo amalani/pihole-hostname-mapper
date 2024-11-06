@@ -11,11 +11,12 @@ from python_hosts import Hosts, HostsEntry
 
 HOSTS_LIST = "hosts.csv"
 HOSTS_TMP = "hosts.tmp"
+# Nmap7.8 runs into issues with /22 subnet 
 NMAP_TARGETS = [
-    '192.168.0.1/24',
-    # '192.168.1.1/24',
-    # '192.168.2.1/24',
-    # '192.168.3.1/24'
+    '192.168.0.0/24',
+    '192.168.1.0/24',
+    '192.168.2.0/24',
+    '192.168.3.0/24'
 ]
 
 
