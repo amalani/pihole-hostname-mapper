@@ -27,6 +27,7 @@ def read_mac_to_host(file_path='hosts.csv'):
         Parameters:
         file_path (str): Path to the CSV file containing MAC addresses and hostnames.
                          Default is 'hosts.csv'.
+        Mac address can contain : or - as delimiter
     Returns:
         dict: A dictionary with MAC addresses as keys and hostnames as values.
     """
@@ -36,7 +37,7 @@ def read_mac_to_host(file_path='hosts.csv'):
         with open(file_path, mode='r', newline='') as file:
             csv_reader = csv.DictReader(file)
             for row in csv_reader:
-                mac = row['MAC Address'].strip()
+                mac = row['MAC Address'].strip().replace("-", ":")
                 hostname = row['Hostname'].strip()
                 mac_to_host[mac] = hostname
     except FileNotFoundError:
