@@ -17,7 +17,7 @@ NMAP_TARGETS = [
     '192.168.0.0/24',
     '192.168.1.0/24',
     '192.168.2.0/24',
-    '192.168.3.0/24'
+    #'192.168.3.0/24', 
 ]
 
 
@@ -50,7 +50,7 @@ def read_mac_to_host(file_path='hosts.csv'):
     return mac_to_host
 
 
-def nmap_scan(target='192.168.1.0/24'):
+def nmap_scan(target):
     """
     Runs an nmap scan to obtain IP and MAC addresses on the specified network.
     Parameters:
@@ -119,8 +119,6 @@ def update_hosts(hosts, mac_dict, scan_results):
                             # hosts.remove
                             new_entry = HostsEntry(entry_type='ipv4', address=ip, names=[etchostname])
                             hosts.add([new_entry], force=True)
-
-
 def main():
     mac_dict = read_mac_to_host(HOSTS_LIST)
     # print("MAC Address to Hostname mapping:")
