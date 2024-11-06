@@ -1,5 +1,8 @@
 # pihole-hostname-mapper
 
+If you don't use PiHole for dhcp, then the clients show up with ip addresses. 
+This script scans your local network to resolve ip addresses to their actual host names.
+You can manually specify known hosts to have predefined names using their mac addresses.
 
 
 # How to use
