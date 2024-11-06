@@ -90,8 +90,9 @@ def update_hosts(hosts, mac_dict, scan_results):
     for ip, details in scan_results.items():
         # print(f"{ip} : {details}")
         if details['mac_address_found'] is True:
-            print(f"Device {ip} ({mac_address}):")
             mac_address = details['mac_address']
+            print(f"Device {ip} ({mac_address}): {details}")
+
             if mac_address in mac_dict.keys():
                 etchostname = mac_dict[mac_address]
                 print(f" Found match {etchostname}")
