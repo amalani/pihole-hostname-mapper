@@ -119,6 +119,8 @@ def update_hosts(hosts, mac_dict, scan_results):
                             # hosts.remove
                             new_entry = HostsEntry(entry_type='ipv4', address=ip, names=[etchostname])
                             hosts.add([new_entry], force=True)
+
+
 def main():
     mac_dict = read_mac_to_host(HOSTS_LIST)
     # print("MAC Address to Hostname mapping:")
@@ -146,6 +148,7 @@ def main():
     if not filecmp.cmp(HOSTS_TMP, "/etc/hosts", shallow=False):
         print("Changes detected, writing new hosts file")
         copyfile(HOSTS_TMP, "/etc/hosts")
+
 
 if __name__ == "__main__":
     main()
