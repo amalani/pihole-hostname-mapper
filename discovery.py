@@ -3,12 +3,21 @@ import filecmp
 import os
 import sys
 from shutil import copyfile
+import uuid
 
 import nmap
 from python_hosts import Hosts, HostsEntry
-# from scapy.all import *
 
-HOSTS_FILE = "hosts.csv"
+
+HOSTS_LIST = "hosts.csv"
+HOSTS_TMP = "hosts.tmp"
+NMAP_TARGETS = [
+    '192.168.0.1/24',
+    # '192.168.1.1/24',
+    # '192.168.2.1/24',
+    # '192.168.3.1/24'
+]
+
 
 def read_mac_to_host(file_path='hosts.csv'):
     """
@@ -67,18 +76,19 @@ def nmap_scan(target='192.168.1.0/24'):
         print(f"An error occurred during nmap scan: {e}")
     return scan_results
 
+def sanitize_vendor_name(vendor_name):
+    new_vendor_name = vendor_name
+    new_vendor_name = new_vendor_name.replace(" ", "_")
+    new_vendor_name = new_vendor_name.replace(":", "_")
+    new_vendor_name = new_vendor_name.replace(".", "")
+    return ''.join(letter for letter in new_vendor_name if letter.isalnum() or letter == '_')
 
-def main():
-    file_path = 'hosts.csv'
-    mac_dict = read_mac_to_host(file_path)
-    # print("MAC Address to Hostname mapping:")
-    # for mac, hostname in mac_dict.items():
-    #     print(f" {mac}: {hostname}")
+def get_mac_addr_parts(mac_address):
+    return mac_address[len(mac_address) - 5:]
 
-    scan_results = nmap_scan()
+def update_hosts(hosts, mac_dict, scan_results):
     for ip, details in scan_results.items():
         # print(f"{ip} : {details}")
-
         if details['mac_address_found'] is True:
             mac_address = details['mac_address']
             if mac_address in mac_dict.keys():
@@ -86,7 +96,51 @@ def main():
                 print(f"Device at {ip} ({mac_address}) is in hardcoded list as {etchostname}")
             else:
                 print(f"Device at {ip} ({mac_address}) is not in list")
+                # Generate one if possible or lookup
+                ip_hostname = ip.replace(".", "_")
+                vendor = "_" + next(iter(details['vendor'].values())) if details['vendor'] else ""
+                mac_addr_parts = get_mac_addr_parts(mac_address)
+                etchostname = sanitize_vendor_name(f"{ip_hostname}{vendor}_{mac_addr_parts}") 
 
+            # if neither the hostname or ip address exist in hosts file
+            if not hosts.exists(ip, etchostname):
+                print(f"Adding hostname: {etchostname} with {ip} to hosts file.")
+                hosts.remove_all_matching(name=etchostname)
+                new_entry = HostsEntry(entry_type='ipv4', address=ip, names=[etchostname])
+                hosts.add([new_entry])
+
+            # if the hostname exists but ip address in hosts file differs from nmap scan
+            for entry in hosts.entries:
+                if entry.entry_type in ['ipv4']: # , 'ipv6']:
+                    if entry.names[0] == etchostname:
+                        if entry.address != ip:
+                            print(f"Updating hostname {etchostname} with {ip}.")
+                            hosts.remove_all_matching(name=etchostname)
+                            new_entry = HostsEntry(entry_type='ipv4', address=ip, names=[etchostname])
+                            hosts.add([new_entry])
+
+
+def main():
+    mac_dict = read_mac_to_host(HOSTS_LIST)
+    # print("MAC Address to Hostname mapping:")
+    # for mac, hostname in mac_dict.items():
+    #     print(f" {mac}: {hostname}")
+
+    # Make a copy of the hosts file
+    copyfile("/etc/hosts", HOSTS_TMP)  # TODO: move to temp
+    hosts = Hosts(path=HOSTS_TMP)
+
+    for target in NMAP_TARGETS:
+        scan_results = nmap_scan(target=target)
+        update_hosts(hosts, mac_dict, scan_results)
+
+    hosts.write()
+
+    # if the contents of our temp hosts file differs from the real hosts file
+    # copy our temp file over to the real file
+    if not filecmp.cmp(HOSTS_TMP, "/etc/hosts", shallow=False):
+        print("Changes detected, writing new hosts file")
+        # copyfile(HOSTS_TMP, "/etc/hosts")
 
 if __name__ == "__main__":
     main()
