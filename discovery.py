@@ -77,10 +77,7 @@ def nmap_scan(target='192.168.1.0/24'):
     return scan_results
 
 def sanitize_vendor_name(vendor_name):
-    new_vendor_name = vendor_name
-    new_vendor_name = new_vendor_name.replace(" ", "_")
-    new_vendor_name = new_vendor_name.replace(":", "_")
-    new_vendor_name = new_vendor_name.replace(".", "")
+    new_vendor_name = vendor_name.replace(" ", "_").replace(":", "_").replace(".", "").replace("/", "")
     return ''.join(letter for letter in new_vendor_name if letter.isalnum() or letter == '_')
 
 def get_mac_addr_parts(mac_address):
