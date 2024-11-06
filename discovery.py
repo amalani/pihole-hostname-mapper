@@ -97,7 +97,7 @@ def update_hosts(hosts, mac_dict, scan_results):
                 # Generate one if possible or lookup
                 ip_hostname = ip.replace(".", "_")
                 vendor = "_" + next(iter(details['vendor'].values())) if details['vendor'] else ""
-                mac_addr_parts = get_mac_addr_parts(mac_address)
+                mac_addr_parts = get_mac_addr_parts(mac_address) if details['vendor'] else mac_address
                 etchostname = sanitize_vendor_name(f"{ip_hostname}{vendor}_{mac_addr_parts}") 
 
             # if neither the hostname or ip address exist in hosts file
