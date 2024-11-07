@@ -1,3 +1,4 @@
+import argparse
 import csv
 import filecmp
 import json
@@ -8,6 +9,11 @@ from shutil import copyfile
 
 import nmap
 from python_hosts import Hosts, HostsEntry
+
+'''
+References
+- nmap -> https://medium.com/@am-shi/nmap-tryhackme-walkthrough-c62a89c750f1
+'''
 
 HOSTS_LIST = "hosts.csv"
 HOSTS_TMP = "hosts.txt"
@@ -37,7 +43,7 @@ def read_mac_to_host(file_path='hosts.csv'):
         with open(file_path, mode='r', newline='') as file:
             csv_reader = csv.DictReader(file)
             for row in csv_reader:
-                mac = row['MAC Address'].strip().replace("-", ":")
+                mac = row['MAC Address'].strip().upper().replace("-", ":")
                 hostname = row['Hostname'].strip()
                 mac_to_host[mac] = hostname
     except FileNotFoundError:
@@ -73,6 +79,7 @@ def nmap_scan(target):
                 'mac_address_found': mac_address != NOT_FOUND,
                 'mac_address': mac_address,
                 'vendor': nm[host]['vendor'],
+                # 'os': nm[host]['osclass'],
             }
             # print(f"IP Address: {ip_address}, MAC Address: {mac_address}")
     except Exception as e:
@@ -122,7 +129,7 @@ def update_hosts(hosts, mac_dict, scan_results):
                             hosts.add([new_entry], force=True)
 
 
-def main():
+def main(params):
     mac_dict = read_mac_to_host(HOSTS_LIST)
     # print("MAC Address to Hostname mapping:")
     # for mac, hostname in mac_dict.items():
@@ -136,6 +143,8 @@ def main():
     for target in NMAP_TARGETS:
         scan_result = nmap_scan(target=target)
         scan_results.update(scan_result)
+        if params.test == True:
+            break
 
     update_hosts(hosts, mac_dict, scan_results)
     hosts.write()
@@ -144,17 +153,19 @@ def main():
     with open(NMAP_HOSTS, 'w') as output:
         output.write(json.dumps(scan_results, indent= 4, sort_keys= True))
 
-    # if the contents of our temp hosts file differs from the real hosts file
-    # copy our temp file over to the real file
-    if not filecmp.cmp(HOSTS_TMP, "/etc/hosts", shallow=False):
-        print("Changes detected, writing new hosts file")
-        copyfile(HOSTS_TMP, "/etc/hosts")
+    if params.update_hosts == True:
+        # if the contents of our temp hosts file differs from the real hosts file
+        # copy our temp file over to the real file
+        if not filecmp.cmp(HOSTS_TMP, "/etc/hosts", shallow=False):
+            print("Changes detected, writing new hosts file")
+            copyfile(HOSTS_TMP, "/etc/hosts")
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Hosts mapper")
+    parser.add_argument("-u", "--update_hosts", action="store_true", help="Update hosts file")
+    parser.add_argument("-t", "--test", action="store_true", help="Test - uses only first subnet")
+    args = parser.parse_args()
 
+    main(params=args)
 
-
-## References
-# nmap -> https://medium.com/@am-shi/nmap-tryhackme-walkthrough-c62a89c750f1
